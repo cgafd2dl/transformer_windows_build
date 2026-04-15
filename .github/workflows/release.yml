@@ -8,7 +8,9 @@ on:
 jobs:
   build-and-release:
     runs-on: windows-latest
-    
+    permissions:
+      contents: write
+      
     steps:
       - name: Checkout This Repo
         uses: actions/checkout@v4
