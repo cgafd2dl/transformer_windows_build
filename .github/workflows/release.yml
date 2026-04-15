@@ -1,0 +1,45 @@
+name: Remote Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers on tags starting with 'v'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout This Repo
+        uses: actions/checkout@v4
+
+      # 1. Clone the external repository
+      # Replace the URL with your target repo. 
+      # Use ${{ secrets.REMOTE_REPO_PAT }} if it's a private repo.
+      - name: Clone Target Repo
+        run: |
+          git clone https://github.com/ForTheCommunity/Transformer.git target_project
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      - name: Build for Windows
+        run: |
+          cd target_project
+          cargo build --release --target x86_64-pc-windows-msvc
+
+      - name: Package Artifact
+        run: |
+          mkdir dist
+          cp target_project/target/x86_64-pc-windows-msvc/release/*.exe dist/
+          # Optional: Add a README or LICENSE to the dist folder here
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
